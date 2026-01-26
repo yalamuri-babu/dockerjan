@@ -1,0 +1,6 @@
+replicaCount: 3
+
+image:
+  repository: silpaguna/dockerjan
+  tag: day5-v1
+containerPort: 8080

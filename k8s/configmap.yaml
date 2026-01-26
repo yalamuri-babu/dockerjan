@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dockerjan-config
+data:
+  SPRING_PROFILES_ACTIVE: dev
+  APP_MESSAGE: Hello from Kubernetes ConfigMap

@@ -1,0 +1,24 @@
+# ---------- Build stage ----------
+FROM maven:3.9.6-eclipse-temurin-17 AS build
+WORKDIR /build
+COPY pom.xml .
+RUN mvn -B dependency:go-offline
+COPY src ./src
+RUN mvn clean package -DskipTests
+
+# ---------- Runtime stage ----------
+FROM eclipse-temurin:17-jre-alpine
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring
+
+COPY --from=build /build/target/dockerjan-1.0.0.jar app.jar
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget -qO- http://localhost:8080 || exit 1
+
+ENTRYPOINT ["java","-jar","app.jar"]

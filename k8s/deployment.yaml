@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dockerjan
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: dockerjan
+  template:
+    metadata:
+      labels:
+        app: dockerjan
+    spec:
+      containers:
+      - name: dockerjan
+        image: silpaguna/dockerjan:day5-v2
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: dockerjan-config
