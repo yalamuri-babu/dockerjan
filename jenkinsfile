@@ -2,15 +2,28 @@ pipeline {
     agent any
 
     stages {
-        stage('Checkout') {
+        stage('Sanity Check') {
             steps {
-                checkout scm
+                echo 'Jenkins is alive'
+                sh 'whoami'
+                sh 'pwd'
             }
         }
 
-        stage('Smoke Test') {
+        stage('AWS Identity Check') {
             steps {
-                sh 'ls -la'
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-jenkins'
+                ]]) {
+                    sh 'aws sts get-caller-identity'
+                }
+            }
+        }
+
+        stage('Git Checkout') {
+            steps {
+                checkout scm
             }
         }
 
