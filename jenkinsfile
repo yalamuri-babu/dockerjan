@@ -16,5 +16,14 @@ pipeline {
                 '''
             }
         }
+
+        stage('Maven Build') {
+            steps {
+                sh '''
+                  echo "Running Maven build..."
+                  mvn clean package -DskipTests
+                '''
+            }
+        }
     }
 }
