@@ -10,19 +10,13 @@ pipeline {
 
         stage('Smoke Test') {
             steps {
-                sh '''
-                  echo "Running smoke test..."
-                  ls -la
-                '''
+                sh 'ls -la'
             }
         }
 
         stage('Maven Build') {
             steps {
-                sh '''
-                  echo "Running Maven build..."
-                  mvn clean package -DskipTests
-                '''
+                sh 'mvn -B clean package'
             }
         }
     }
