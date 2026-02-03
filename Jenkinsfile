@@ -24,6 +24,18 @@ pipeline {
                 sh 'mvn -B clean package'
             }
         }
+        stage('AWS Identity Check') {
+          steps {
+          withCredentials([[
+            $class: 'AmazonWebServicesCredentialsBinding',
+            credentialsId: 'aws-ecr-jenkins'
+        ]]) {
+            sh '''
+              aws sts get-caller-identity
+            '''
+        }
+    }
+}
 
         stage('Docker Build') {
             steps {
