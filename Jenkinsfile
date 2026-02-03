@@ -17,12 +17,7 @@ pipeline {
         stage('Maven Build') {
             steps {
                 sh 'mvn -B clean package'       
-        post {
-    success {
-        archiveArtifacts artifacts: 'target/*.jar'
-            }
-        }
-   
+       
     }
 }
     }
