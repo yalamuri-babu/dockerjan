@@ -1,21 +1,41 @@
 pipeline {
+
     agent any
 
     environment {
-        DOCKER_IMAGE = "silpaguna/dockerjan"
+        AWS_REGION = "ap-south-1"
+        ECR_REPO   = "dockerjan"
+        AWS_ACCOUNT_ID = "776751404462"
+        IMAGE_TAG = "${BUILD_NUMBER}"
     }
 
     stages {
 
-        stage('Checkout') {
+        stage('Sanity Check') {
             steps {
-                checkout scm
+                echo "Jenkins is alive"
+                sh 'whoami'
+                sh 'pwd'
             }
         }
 
-        stage('Smoke Test') {
+        stage('AWS Identity Check') {
             steps {
-                sh 'ls -la'
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'awsecr-jenkins'
+                ]]) {
+                    sh '''
+                      export AWS_DEFAULT_REGION=ap-south-1
+                      aws sts get-caller-identity
+                    '''
+                }
+            }
+        }
+
+        stage('Git Checkout') {
+            steps {
+                checkout scm
             }
         }
 
@@ -24,71 +44,39 @@ pipeline {
                 sh 'mvn -B clean package'
             }
         }
-     environment {
-    AWS_REGION = "ap-south-1"
-    ECR_REPO   = "dockerjan"
-    AWS_ACCOUNT_ID = "776751404462"
-    IMAGE_TAG = "${BUILD_NUMBER}"
-}
-
-stage('Docker Build') {
-    steps {
-        sh '''
-          docker build -t $ECR_REPO:$IMAGE_TAG .
-        '''
-    }
-}
-
-stage('Login to ECR') {
-    steps {
-        withCredentials([[
-            $class: 'AmazonWebServicesCredentialsBinding',
-            credentialsId: 'awsecr-jenkins'
-        ]]) {
-            sh '''
-              aws ecr get-login-password --region $AWS_REGION \
-              | docker login --username AWS --password-stdin \
-              $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-            '''
-        }
-    }
-}
-
-stage('Tag & Push to ECR') {
-    steps {
-        sh '''
-          docker tag $ECR_REPO:$IMAGE_TAG \
-          $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
-
-          docker push \
-          $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
-        '''
-    }
-}
-
 
         stage('Docker Build') {
             steps {
                 sh '''
-                  docker build -t $DOCKER_IMAGE:${BUILD_NUMBER} .
-                  docker tag $DOCKER_IMAGE:${BUILD_NUMBER} $DOCKER_IMAGE:latest
+                  docker build -t $ECR_REPO:$IMAGE_TAG .
                 '''
             }
         }
 
-        stage('Docker Push') {
+        stage('Login to ECR') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
+                withCredentials([[
+                    $class: 'AmazonWebServicesCredentialsBinding',
+                    credentialsId: 'aws-jenkins'
+                ]]) {
                     sh '''
-                      echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                      docker push $DOCKER_IMAGE:${BUILD_NUMBER}
-                      docker push $DOCKER_IMAGE:latest
+                      aws ecr get-login-password --region $AWS_REGION \
+                      | docker login --username AWS --password-stdin \
+                      $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
                     '''
                 }
+            }
+        }
+
+        stage('Tag & Push to ECR') {
+            steps {
+                sh '''
+                  docker tag $ECR_REPO:$IMAGE_TAG \
+                  $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
+
+                  docker push \
+                  $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
+                '''
             }
         }
     }
