@@ -1,6 +1,7 @@
 replicaCount: 3
 
 image:
-  repository: silpaguna/dockerjan
-  tag: day5-v1
+  repository: 776751404462.dkr.ecr.ap-south-1.amazonaws.com/dockerjan
+  tag: latest   # we’ll improve this later
+
 containerPort: 8080
