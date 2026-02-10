@@ -37,9 +37,20 @@ pipeline {
                 sh 'mvn -B clean package'
                }
               }
-
-       stage('Login to ECR') {
-           steps {
+        stage('SonarQube Analysis') {
+              steps {
+              withSonarQubeEnv('sonar') {
+              sh '''
+              mvn sonar:sonar \
+              -Dsonar.projectKey=dockerjan \
+              -Dsonar.projectName=dockerjan
+               '''
+                }
+               }
+              }
+      
+             stage('Login to ECR') {
+              steps {
                 sh '''
                 aws ecr get-login-password --region $AWS_REGION \
                 | docker login --username AWS --password-stdin \
