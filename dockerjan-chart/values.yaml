@@ -2,6 +2,6 @@ replicaCount: 3
 
 image:
   repository: 776751404462.dkr.ecr.ap-south-1.amazonaws.com/dockerjan
-  tag: latest   # we’ll improve this later
+  tag: 13   # we’ll improve this later
 
 containerPort: 8080
