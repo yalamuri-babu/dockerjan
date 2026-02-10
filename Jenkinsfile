@@ -52,9 +52,9 @@ pipeline {
              steps {
                timeout(time: 5, unit: 'MINUTES') {
                 waitForQualityGate abortPipeline: true
-        }
-    }
-}
+               }
+               }
+              }
 
              stage('Login to ECR') {
               steps {
@@ -71,7 +71,7 @@ pipeline {
          steps {
               sh '''
               docker build -t dockerjan:${BUILD_NUMBER} .
-              docker tag dockerjan:${BUILD_NUMBER} \
+              docker tag dockerjan:${BUILD_NUMBER}-${GIT_COMMIT[0..7] \
               776751404462.dkr.ecr.ap-south-1.amazonaws.com/dockerjan:${BUILD_NUMBER}
               aws ecr get-login-password --region ap-south-1 | \
               docker login --username AWS --password-stdin 776751404462.dkr.ecr.ap-south-1.amazonaws.com
