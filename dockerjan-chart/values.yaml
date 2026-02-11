@@ -5,3 +5,11 @@ image:
   tag: 13   # we’ll improve this later
 
 containerPort: 8080
+config:
+  appName: dockerjan
+  env: prod
+  logLevel: INFO
+
+secrets:
+  dbPassword: "mydb123"
+  apiKey: "test-api-key"
