@@ -20,6 +20,18 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: {{ .Values.containerPort }}
+          envFrom:
+            - configMapRef:
+              name: {{ include "dockerjan.fullname" . }}-config
+          env:
+            - name: APP_ENV
+              value: "{{ .Values.env.APP_ENV }}"
+
+            - name: APP_NAME
+              value: "{{ .Values.env.APP_NAME }}"
+
+            - name: APP_VERSION
+              value: "{{ .Chart.AppVersion }}"
           readinessProbe:
             httpGet:
               path: /
